@@ -3,7 +3,7 @@ name: Weekly README Verification and Update
 on:
   schedule:
     # Run every Monday at 9:00 AM UTC
-    - cron: '0 9 * * 5'
+    - cron: '0 9 * * 1'
   workflow_dispatch: # Allow manual trigger
 
 permissions:
@@ -34,19 +34,22 @@ jobs:
         id: link_check
         continue-on-error: true
         run: |
+          set +e
           echo "Checking links in README.md..."
           markdown-link-check README.md --config .github/workflows/link-check-config.json > $RUNNER_TEMP/link-check-results.txt 2>&1
           EXIT_CODE=$?
           echo "markdown-link-check exit code: $EXIT_CODE" >> $RUNNER_TEMP/link-check-results.txt
           cat $RUNNER_TEMP/link-check-results.txt
+          set -e
           
-          # Extract broken links
-          grep "✖" $RUNNER_TEMP/link-check-results.txt > $RUNNER_TEMP/broken-links.txt || echo "No broken links found" > $RUNNER_TEMP/broken-links.txt
+          # Extract broken links - ensure file always exists
+          grep "✖" $RUNNER_TEMP/link-check-results.txt > $RUNNER_TEMP/broken-links.txt 2>/dev/null || echo "No broken links found" > $RUNNER_TEMP/broken-links.txt
           
           echo "Link check completed"
 
       - name: Search for new EV projects
         id: search_projects
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -145,7 +148,10 @@ jobs:
             console.log(`Found ${output.length} potential new projects`);
           }
 
-          main().catch(console.error);
+          main().catch(err => {
+            console.error(err);
+            fs.writeFileSync(process.env.RUNNER_TEMP + '/new-projects.json', '[]');
+          });
           EOF
 
           node $RUNNER_TEMP/search-projects.js
@@ -154,7 +160,7 @@ jobs:
         id: read_readme
         run: |
           # Extract existing project URLs from README to avoid duplicates
-          grep -oP 'https?://[^\s\)]+' README.md | sort -u > $RUNNER_TEMP/existing-urls.txt || true
+          grep -oP 'https?://[^\s\)]+' README.md | sort -u > $RUNNER_TEMP/existing-urls.txt || echo "" > $RUNNER_TEMP/existing-urls.txt
           echo "Extracted existing URLs from README"
 
       - name: Generate update suggestions
@@ -177,9 +183,27 @@ jobs:
 
           try {
             const tempDir = process.env.RUNNER_TEMP;
-            const newProjects = JSON.parse(fs.readFileSync(tempDir + '/new-projects.json', 'utf8'));
-            const existingUrls = fs.readFileSync(tempDir + '/existing-urls.txt', 'utf8').split('\n').filter(Boolean);
-            const brokenLinks = fs.readFileSync(tempDir + '/broken-links.txt', 'utf8');
+            
+            // Read new projects with fallback
+            let newProjects = [];
+            const newProjectsPath = tempDir + '/new-projects.json';
+            if (fs.existsSync(newProjectsPath)) {
+              newProjects = JSON.parse(fs.readFileSync(newProjectsPath, 'utf8'));
+            }
+            
+            // Read existing URLs with fallback
+            let existingUrls = [];
+            const existingUrlsPath = tempDir + '/existing-urls.txt';
+            if (fs.existsSync(existingUrlsPath)) {
+              existingUrls = fs.readFileSync(existingUrlsPath, 'utf8').split('\n').filter(Boolean);
+            }
+            
+            // Read broken links with fallback
+            let brokenLinks = 'No broken links found';
+            const brokenLinksPath = tempDir + '/broken-links.txt';
+            if (fs.existsSync(brokenLinksPath)) {
+              brokenLinks = fs.readFileSync(brokenLinksPath, 'utf8');
+            }
 
             // Normalize existing URLs for comparison
             const normalizedExisting = existingUrls.map(normalizeUrl);
