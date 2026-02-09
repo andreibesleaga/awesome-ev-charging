@@ -1,0 +1,264 @@
+name: Weekly README Verification and Update
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  verify-and-update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install -g markdown-link-check
+          npm install -g axios
+
+      - name: Check links in README.md
+        id: link_check
+        continue-on-error: true
+        run: |
+          echo "Checking links in README.md..."
+          markdown-link-check README.md --config .github/workflows/link-check-config.json > link-check-results.txt 2>&1 || true
+          cat link-check-results.txt
+          
+          # Extract broken links
+          grep "✖" link-check-results.txt > broken-links.txt || echo "No broken links found" > broken-links.txt
+          
+          echo "Link check completed"
+
+      - name: Search for new EV projects
+        id: search_projects
+        run: |
+          # Create a Node.js script to search for new projects
+          cat > search-projects.js << 'EOF'
+          const https = require('https');
+          const fs = require('fs');
+
+          // Keywords to search for
+          const keywords = [
+            'OCPP charging station',
+            'EV charging management system',
+            'ISO 15118 implementation',
+            'OCPI roaming platform',
+            'electric vehicle charging software',
+            'charge point operator software',
+            'EV charging API',
+            'open source charging station'
+          ];
+
+          async function searchGitHub(keyword) {
+            return new Promise((resolve, reject) => {
+              const options = {
+                hostname: 'api.github.com',
+                path: `/search/repositories?q=${encodeURIComponent(keyword)}&sort=stars&order=desc&per_page=5`,
+                headers: {
+                  'User-Agent': 'Awesome-EV-Charging-Bot',
+                  'Accept': 'application/vnd.github.v3+json'
+                }
+              };
+
+              https.get(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => { data += chunk; });
+                res.on('end', () => {
+                  try {
+                    const json = JSON.parse(data);
+                    resolve(json.items || []);
+                  } catch (e) {
+                    resolve([]);
+                  }
+                });
+              }).on('error', (err) => {
+                console.error(`Error searching for ${keyword}:`, err.message);
+                resolve([]);
+              });
+            });
+          }
+
+          async function main() {
+            console.log('Searching for new EV-related projects...');
+            const allResults = [];
+            
+            for (const keyword of keywords) {
+              console.log(`Searching for: ${keyword}`);
+              await new Promise(resolve => setTimeout(resolve, 2000)); // Rate limiting
+              const results = await searchGitHub(keyword);
+              allResults.push(...results);
+            }
+
+            // Remove duplicates based on URL
+            const uniqueResults = Array.from(
+              new Map(allResults.map(item => [item.html_url, item])).values()
+            );
+
+            // Filter for relevant results (starred, active, etc.)
+            const filtered = uniqueResults.filter(repo => 
+              repo.stargazers_count >= 10 && 
+              !repo.archived &&
+              repo.description
+            );
+
+            // Sort by stars
+            filtered.sort((a, b) => b.stargazers_count - a.stargazers_count);
+
+            // Take top 15 unique projects
+            const topProjects = filtered.slice(0, 15);
+
+            // Save results
+            const output = topProjects.map(repo => ({
+              name: repo.name,
+              url: repo.html_url,
+              description: repo.description,
+              stars: repo.stargazers_count,
+              language: repo.language,
+              updated_at: repo.updated_at
+            }));
+
+            fs.writeFileSync('new-projects.json', JSON.stringify(output, null, 2));
+            console.log(`Found ${output.length} potential new projects`);
+          }
+
+          main().catch(console.error);
+          EOF
+
+          node search-projects.js
+
+      - name: Read existing README content
+        id: read_readme
+        run: |
+          # Extract existing project URLs from README to avoid duplicates
+          grep -oP 'https?://[^\s\)]+' README.md | sort -u > existing-urls.txt || true
+          echo "Extracted existing URLs from README"
+
+      - name: Generate update suggestions
+        id: generate_update
+        run: |
+          cat > generate-suggestions.js << 'EOF'
+          const fs = require('fs');
+
+          try {
+            const newProjects = JSON.parse(fs.readFileSync('new-projects.json', 'utf8'));
+            const existingUrls = fs.readFileSync('existing-urls.txt', 'utf8').split('\n').filter(Boolean);
+            const brokenLinks = fs.readFileSync('broken-links.txt', 'utf8');
+
+            let suggestions = '# README Update Suggestions\n\n';
+            
+            // Report broken links
+            if (brokenLinks && brokenLinks.trim() !== 'No broken links found') {
+              suggestions += '## 🔴 Broken Links Found\n\n';
+              suggestions += '```\n' + brokenLinks + '\n```\n\n';
+              suggestions += 'Please review and update or remove these broken links.\n\n';
+            } else {
+              suggestions += '## ✅ All Links Working\n\n';
+              suggestions += 'All links in README.md are functioning correctly.\n\n';
+            }
+
+            // Suggest new projects
+            const trulyNewProjects = newProjects.filter(project => 
+              !existingUrls.some(url => url.includes(project.url) || project.url.includes(url))
+            );
+
+            if (trulyNewProjects.length > 0) {
+              suggestions += '## 🆕 Potential New Projects to Add\n\n';
+              suggestions += 'Found the following EV-related projects that might be worth adding:\n\n';
+              
+              trulyNewProjects.forEach(project => {
+                suggestions += `### ${project.name}\n`;
+                suggestions += `- **URL**: ${project.url}\n`;
+                suggestions += `- **Description**: ${project.description}\n`;
+                suggestions += `- **Stars**: ⭐ ${project.stars}\n`;
+                if (project.language) {
+                  suggestions += `- **Language**: ${project.language}\n`;
+                }
+                suggestions += `- **Last Updated**: ${new Date(project.updated_at).toLocaleDateString()}\n\n`;
+              });
+            } else {
+              suggestions += '## ℹ️ No New Projects Found\n\n';
+              suggestions += 'No new projects were discovered that are not already in the README.\n\n';
+            }
+
+            suggestions += '\n---\n';
+            suggestions += '*This report was automatically generated by the Weekly README Verification workflow.*\n';
+
+            fs.writeFileSync('update-suggestions.md', suggestions);
+            
+            // Create a flag if updates are needed
+            const needsUpdate = (brokenLinks && brokenLinks.trim() !== 'No broken links found') || trulyNewProjects.length > 0;
+            fs.writeFileSync('needs-update.txt', needsUpdate ? 'true' : 'false');
+            
+            console.log('Update suggestions generated');
+          } catch (error) {
+            console.error('Error generating suggestions:', error);
+            process.exit(1);
+          }
+          EOF
+
+          node generate-suggestions.js
+
+      - name: Check if updates are needed
+        id: check_updates
+        run: |
+          NEEDS_UPDATE=$(cat needs-update.txt)
+          echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+          echo "Update needed: $NEEDS_UPDATE"
+
+      - name: Create Pull Request
+        if: steps.check_updates.outputs.needs_update == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'docs: weekly README verification results'
+          branch: weekly-readme-update-${{ github.run_number }}
+          delete-branch: true
+          title: '📋 Weekly README Verification - ${{ github.run_number }}'
+          body-path: update-suggestions.md
+          labels: |
+            documentation
+            automated
+          assignees: ${{ github.repository_owner }}
+
+      - name: Create issue if PR creation fails
+        if: failure() && steps.check_updates.outputs.needs_update == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const suggestions = fs.readFileSync('update-suggestions.md', 'utf8');
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📋 Weekly README Verification Results - Manual Review Needed',
+              body: suggestions,
+              labels: ['documentation', 'automated']
+            });
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-results-${{ github.run_number }}
+          path: |
+            link-check-results.txt
+            broken-links.txt
+            new-projects.json
+            update-suggestions.md
+          retention-days: 30
