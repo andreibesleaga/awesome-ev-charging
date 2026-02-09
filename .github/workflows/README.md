@@ -97,9 +97,12 @@ Adjust the `setTimeout` delay in the search script to comply with API rate limit
 - Add patterns to `ignorePatterns` for known issues
 
 ### Rate Limiting
-- The workflow includes delays between searches
-- GitHub API has rate limits (60 requests/hour for unauthenticated)
-- Consider adding a GitHub token for higher limits
+- The workflow includes delays between searches to respect API limits
+- GitHub API authentication is automatically configured using `GITHUB_TOKEN`
+  - Authenticated requests have a limit of 5,000 requests/hour
+  - Unauthenticated requests are limited to 60 requests/hour
+- The workflow automatically uses the `GITHUB_TOKEN` secret, which is available in all GitHub Actions
+- No additional configuration is needed for authentication
 
 ## Contributing
 

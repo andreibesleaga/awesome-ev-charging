@@ -29,7 +29,6 @@ jobs:
       - name: Install dependencies
         run: |
           npm install -g markdown-link-check
-          npm install -g axios
 
       - name: Check links in README.md
         id: link_check
@@ -46,6 +45,8 @@ jobs:
 
       - name: Search for new EV projects
         id: search_projects
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Create a Node.js script to search for new projects
           cat > search-projects.js << 'EOF'
@@ -74,6 +75,11 @@ jobs:
                   'Accept': 'application/vnd.github.v3+json'
                 }
               };
+
+              // Add authentication if token is available
+              if (process.env.GITHUB_TOKEN) {
+                options.headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+              }
 
               https.get(options, (res) => {
                 let data = '';
