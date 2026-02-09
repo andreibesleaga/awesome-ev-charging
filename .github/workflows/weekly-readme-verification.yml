@@ -34,6 +34,10 @@ jobs:
         id: link_check
         continue-on-error: true
         run: |
+          # Ensure output files exist
+          touch $RUNNER_TEMP/link-check-results.txt
+          touch $RUNNER_TEMP/broken-links.txt
+
           set +e
           echo "Checking links in README.md..."
           markdown-link-check README.md --config .github/workflows/link-check-config.json > $RUNNER_TEMP/link-check-results.txt 2>&1
@@ -42,8 +46,17 @@ jobs:
           cat $RUNNER_TEMP/link-check-results.txt
           set -e
           
-          # Extract broken links - ensure file always exists
-          grep "✖" $RUNNER_TEMP/link-check-results.txt > $RUNNER_TEMP/broken-links.txt 2>/dev/null || echo "No broken links found" > $RUNNER_TEMP/broken-links.txt
+          # Extract broken links - ensure file always exists and is not empty if matches found
+          if [ -f "$RUNNER_TEMP/link-check-results.txt" ]; then
+            grep "✖" $RUNNER_TEMP/link-check-results.txt > $RUNNER_TEMP/broken-links.txt 2>/dev/null || echo "No broken links found" > $RUNNER_TEMP/broken-links.txt
+          else
+            echo "No link check results found" > $RUNNER_TEMP/broken-links.txt
+          fi
+          
+          # Double check file existence
+          if [ ! -s "$RUNNER_TEMP/broken-links.txt" ]; then
+             echo "No broken links found" > $RUNNER_TEMP/broken-links.txt
+          fi
           
           echo "Link check completed"
 
@@ -187,22 +200,36 @@ jobs:
             // Read new projects with fallback
             let newProjects = [];
             const newProjectsPath = tempDir + '/new-projects.json';
-            if (fs.existsSync(newProjectsPath)) {
-              newProjects = JSON.parse(fs.readFileSync(newProjectsPath, 'utf8'));
+            try {
+              if (fs.existsSync(newProjectsPath)) {
+                newProjects = JSON.parse(fs.readFileSync(newProjectsPath, 'utf8'));
+              }
+            } catch (e) {
+              console.warn("Could not read new-projects.json:", e.message);
             }
             
             // Read existing URLs with fallback
             let existingUrls = [];
             const existingUrlsPath = tempDir + '/existing-urls.txt';
-            if (fs.existsSync(existingUrlsPath)) {
-              existingUrls = fs.readFileSync(existingUrlsPath, 'utf8').split('\n').filter(Boolean);
+            try {
+              if (fs.existsSync(existingUrlsPath)) {
+                existingUrls = fs.readFileSync(existingUrlsPath, 'utf8').split('\n').filter(Boolean);
+              }
+            } catch (e) {
+              console.warn("Could not read existing-urls.txt:", e.message);
             }
             
             // Read broken links with fallback
             let brokenLinks = 'No broken links found';
             const brokenLinksPath = tempDir + '/broken-links.txt';
-            if (fs.existsSync(brokenLinksPath)) {
-              brokenLinks = fs.readFileSync(brokenLinksPath, 'utf8');
+            try {
+              if (fs.existsSync(brokenLinksPath)) {
+                brokenLinks = fs.readFileSync(brokenLinksPath, 'utf8');
+              } else {
+                console.warn("broken-links.txt does not exist, using default");
+              }
+            } catch (e) {
+               console.warn("Could not read broken-links.txt:", e.message);
             }
 
             // Normalize existing URLs for comparison

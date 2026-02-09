@@ -4,7 +4,7 @@ This workflow automatically verifies and maintains the quality of the README.md 
 
 ## What it does
 
-The workflow runs weekly (every Monday at 9:00 AM UTC) and performs the following tasks:
+The workflow runs weekly (every Friday at 9:00 AM UTC) and performs the following tasks:
 
 ### 1. Link Verification
 - Checks all links in README.md to ensure they are working and accessible
@@ -63,7 +63,7 @@ Link checking is configured via `.github/workflows/link-check-config.json`:
 Modify the cron expression in the workflow file to change the schedule:
 ```yaml
 schedule:
-  - cron: '0 9 * * 1'  # Every Monday at 9:00 AM UTC
+  - cron: '0 9 * * 5'  # Every Friday at 9:00 AM UTC
 ```
 
 ## Permissions Required
