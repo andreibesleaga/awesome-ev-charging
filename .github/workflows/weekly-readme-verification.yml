@@ -36,7 +36,8 @@ jobs:
         run: |
           echo "Checking links in README.md..."
           markdown-link-check README.md --config .github/workflows/link-check-config.json > $RUNNER_TEMP/link-check-results.txt 2>&1
-          echo "markdown-link-check exit code: $?" >> $RUNNER_TEMP/link-check-results.txt
+          EXIT_CODE=$?
+          echo "markdown-link-check exit code: $EXIT_CODE" >> $RUNNER_TEMP/link-check-results.txt
           cat $RUNNER_TEMP/link-check-results.txt
           
           # Extract broken links
@@ -166,7 +167,7 @@ jobs:
           function normalizeUrl(url) {
             try {
               const parsed = new URL(url);
-              // Remove trailing slash, fragment, and query
+              // Use origin + pathname (excludes fragment and query), remove trailing slash
               return parsed.origin + parsed.pathname.replace(/\/$/, '');
             } catch (e) {
               // If URL parsing fails, return cleaned version
@@ -245,7 +246,7 @@ jobs:
           echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
           echo "Update needed: $NEEDS_UPDATE"
           
-          # Copy suggestions to workspace for PR creation (only the report file)
+          # Copy suggestions to workspace for PR creation
           if [ "$NEEDS_UPDATE" = "true" ]; then
             cp $RUNNER_TEMP/update-suggestions.md ./update-suggestions.md
           fi
