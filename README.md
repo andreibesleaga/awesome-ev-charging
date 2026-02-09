@@ -444,6 +444,15 @@ The easiest way to contribute is to [open an issue](https://github.com/juherr/aw
 
 You can also submit a pull request. Please try to follow the existing format.
 
+### Automated Maintenance
+
+This repository uses an automated weekly workflow that:
+- ✅ Verifies all links in the README are working
+- 🔍 Searches for new EV-related projects on GitHub
+- 📋 Creates pull requests with suggestions for updates
+
+The workflow runs every Monday and can also be triggered manually from the Actions tab. Learn more in the [workflow documentation](.github/workflows/README.md).
+
 ---
 
 ## Other Resources
