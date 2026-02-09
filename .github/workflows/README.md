@@ -26,10 +26,12 @@ The workflow runs weekly (every Monday at 9:00 AM UTC) and performs the followin
 
 ### 3. Automated Pull Request
 - If broken links are found or new projects are discovered, automatically creates a PR
-- PR includes:
+- PR contains a report file (`update-suggestions.md`) with:
   - List of broken links that need attention
   - Suggestions for new projects with descriptions and metadata
-  - Proper labeling and assignment
+- **Note**: The workflow generates suggestions but does not automatically modify README.md - maintainers review and apply changes manually
+- Uses a stable branch name (`weekly-readme-update`) so subsequent runs update the same PR instead of creating duplicates
+- Proper labeling and assignment
 - If PR creation fails, creates an issue instead
 
 ## Manual Trigger
@@ -69,7 +71,7 @@ schedule:
 The workflow needs the following permissions (already configured):
 - `contents: write` - To create branches
 - `pull-requests: write` - To create PRs
-- `issues: read` - To check existing issues
+- `issues: write` - To create issues when PR creation fails
 
 ## Customization
 
