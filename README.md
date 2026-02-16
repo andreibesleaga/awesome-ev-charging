@@ -213,6 +213,7 @@ The **Open InterCharge Protocol (OICP)** is another protocol for roaming, develo
 * [psnehanshu/ocpp-task-manager](https://github.com/psnehanshu/ocpp-task-manager) (JavaScript; OCPP 1.6; A general-purpose, transport-layer agnostic framework to implement anything related to OCPP (Open Charge Point Protocol).)
 * [vampirebyte/rabbitmq-web-ocpp](https://github.com/vampirebyte/rabbitmq-web-ocpp) (Erlang; RabbitMQ OCPP-J-to-AMQP adapter)
 * [vorchunpaul/ocpp-gateway](https://github.com/vorchunpaul/ocpp-gateway) (Python; OCPP 2.0.1; OCPP 2.0.1 to 1.6 gateway)
+* [https://github.com/alexeimoisseev/ocpp.md](https://github.com/alexeimoisseev/ocpp.md) (Docs; OCPP 2.0.1, OCPP 1.6; Structured OCPP knowledge base for AI-assisted EV charging development.)
 
 #### Servers
 **C#**
