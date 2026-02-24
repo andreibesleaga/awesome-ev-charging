@@ -383,7 +383,7 @@ The **Open InterCharge Protocol (OICP)** is another protocol for roaming, develo
 
 ### Misc Protocols Libraries
 * [andreibesleaga/oscp-sdk](https://github.com/andreibesleaga/oscp-sdk) (TypeScript; OSCP SDK & MCP Server)
-* [andreibesleaga/ohcp-mcp](https://github.com/andreibesleaga/ohcp-mcp) (TypeScript; OHCP MCP Server)
+* [andreibesleaga/ochp-mcp](https://github.com/andreibesleaga/ochp-mcp) (TypeScript; OCHP MCP Server)
 
 ### Charging Station Management Systems (CSMS)
 * [steve-community/steve](https://github.com/steve-community/steve) (Java, 1.2S, 1.2J, 1.5S, 1.5J, 1.6S, 1.6J)
