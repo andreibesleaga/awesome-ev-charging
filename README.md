@@ -287,6 +287,7 @@ The **Open InterCharge Protocol (OICP)** is another protocol for roaming, develo
 **Python**
 * [TECHS-Technological-Solutions/ocpp-simulator](https://github.com/TECHS-Technological-Solutions/ocpp-simulator) (Python)
 * [virta-ltd/charge-device-simulator](https://github.com/virta-ltd/charge-device-simulator) (Python; Easy to use device simulators for different protocols like OCPP and Ensto)
+* [OCPP Simulator Lab](https://github.com/PlugSecure-Inc/ocpp-simulator-lab) (Python; An end-to-end OCPP testing tool for EV charging equipment manufacturers and CPMS vendors. Simulates both Charge Points (CP) and a Charge Point Management System (CPMS) with a modern web UI)
 
 **Ruby**
 * [glurp/ocpp_simulator](https://github.com/glurp/ocpp_simulator) (Ruby; Simulation of a electrical Charge Point via OCPP protocol)
