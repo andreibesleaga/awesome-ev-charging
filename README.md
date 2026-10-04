@@ -59,7 +59,7 @@ The **Open Charge Point Protocol (OCPP)** is a communication protocol between el
   * [2.1](ocpp/OCPP-2.1) (2025-01) — *latest; adds V2G, smart charging enhancements, improved security*
   * [2.0.1](ocpp/OCPP-2.0.1) (2020-04)
   * [2.0 (deprecated)](ocpp/OCPP-2.0) (2018)
-  * [1.6](ocpp/OCPP-1.6-Documentation_2019_12) (2015)
+  * [1.6](ocpp/OCPP-1.6) (2015)
   * [1.6 - Security Whitepaper Ed3](ocpp/Whitepapers/OCPP-1.6-security-whitepaper-edition-3-2)
   * [1.5 (deprecated)](ocpp/OCPP-1.5) (2012)
   * [1.2 (deprecated)](ocpp/OCPP-1.2) (2010)
@@ -561,12 +561,7 @@ You can also submit a pull request. Please try to follow the existing format.
 
 ### Automated Maintenance
 
-This repository uses an automated weekly workflow that:
-- ✅ Verifies all links in the README are working
-- 🔍 Searches for new EV-related projects on GitHub
-- 📋 Creates pull requests with suggestions for updates
-
-The workflow runs every Monday and can also be triggered manually from the Actions tab. Learn more in the [workflow documentation](.github/workflows/README.md).
+Links and linked repositories are checked periodically with automated scripts run by the maintainer. Found a dead link or a missing project? Please open an issue or a pull request.
 
 ---
 
