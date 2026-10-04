@@ -16,7 +16,7 @@ This repository contains a collection of specifications, tools, and resources re
   - [OIOI (discontinued)](#oioi-discontinued)
   - [Other Standards & Connectors](#other-standards--connectors)
 - [Tools and Resources](#tools-and-resources)
-  - [OCPP](#ocpp-1)
+  - [OCPP](#ocpp)
     - [Servers](#servers)
     - [Simulators](#simulators)
     - [Libraries](#libraries)
@@ -25,9 +25,9 @@ This repository contains a collection of specifications, tools, and resources re
     - [Plug & Charge](#plug--charge)
     - [ISO 15118-20 / V2G Implementations](#iso-15118-20--v2g-implementations)
     - [Misc](#misc-1)
-  - [OCPI](#ocpi-1)
+  - [OCPI](#ocpi)
     - [Libraries](#libraries-1)
-  - [OICP](#oicp-1)
+  - [OICP](#oicp)
     - [Libraries](#libraries-2)
   - [Eichrecht](#eichrecht-1)
   - [Misc Protocols Libraries](#misc-protocols-libraries)
@@ -535,7 +535,7 @@ The **Open InterCharge Protocol (OICP)** is another protocol for roaming, develo
 * [**CEN/CENELEC standardization for e-mobility**](https://www.cen.eu/work/areas/transport/Pages/E-mobility.aspx) - European standardization bodies for IEC 61851, ISO 15118, and OCPI alignment.
 
 ### United States
-* [**NEVI — National Electric Vehicle Infrastructure Program**](https://www.fhwa.dot.gov/environment/alternative_fuel_corridors/electric/) - US federal program (IIJA 2021) requiring CCS connectors, 150 kW minimum, 97% uptime, open data APIs, and OCPP 2.0.1+ for federally funded chargers.
+* [**NEVI — National Electric Vehicle Infrastructure Program**](https://www.fhwa.dot.gov/environment/alternative_fuel_corridors/) - US federal program (IIJA 2021) requiring CCS connectors, 150 kW minimum, 97% uptime, open data APIs, and OCPP 2.0.1+ for federally funded chargers.
 * [**SAE International EV Standards**](https://www.sae.org/standards/collections/electric-vehicle-standards/) - Covers J1772, J2293, J2836, J3400/NACS, J3068 (CCS Type 2), and related standards.
 
 ### International
